@@ -23,6 +23,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   process.env.FRONTEND_URL,
   'https://frontend-production-5930.up.railway.app',
+  'https://pythontrainer.up.railway.app',
 ].filter(Boolean);
 
 app.use(cors({
