@@ -1,0 +1,193 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String   @id @default(uuid())
+  username         String   @unique
+  email            String   @unique
+  passwordHash     String?  @map("password_hash")
+  oauthProvider    String?  @map("oauth_provider")
+  oauthId          String?  @map("oauth_id")
+  avatarUrl        String?  @map("avatar_url")
+  bio              String?
+  xpPoints         Int      @default(0) @map("xp_points")
+  streakDays       Int      @default(0) @map("streak_days")
+  lastActivityDate DateTime @default(now()) @map("last_activity_date")
+  createdAt        DateTime @default(now()) @map("created_at")
+  lastLogin        DateTime @default(now()) @map("last_login")
+
+  progress        UserProgress[]
+  submissions     ChallengeSubmission[]
+  achievements    UserAchievement[]
+  sharedCode      SharedCode[]
+  createdChallenges Challenge[] @relation("CreatedChallenges")
+
+  @@map("users")
+}
+
+enum LessonDifficulty {
+  beginner
+  intermediate
+  advanced
+  expert
+}
+
+model Lesson {
+  id            String           @id @default(uuid())
+  title         String
+  slug          String           @unique
+  description   String
+  content       String
+  difficulty    LessonDifficulty
+  estimatedTime Int              @map("estimated_time") // in minutes
+  orderIndex    Int              @map("order_index")
+  topic         String
+  prerequisites String[]
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  progress      UserProgress[]
+  exercises     Exercise[]
+
+  @@map("lessons")
+}
+
+model UserProgress {
+  id             String    @id @default(uuid())
+  userId         String    @map("user_id")
+  lessonId       String    @map("lesson_id")
+  completed      Boolean   @default(false)
+  completionDate DateTime? @map("completion_date")
+  timeSpent      Int       @default(0) @map("time_spent") // in seconds
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@map("user_progress")
+}
+
+model Exercise {
+  id          String   @id @default(uuid())
+  lessonId    String   @map("lesson_id")
+  title       String
+  description String
+  starterCode String   @map("starter_code")
+  testCases   Json     @map("test_cases")
+  hints       String[]
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@map("exercises")
+}
+
+enum ChallengeDifficulty {
+  easy
+  medium
+  hard
+  expert
+}
+
+enum ChallengeType {
+  code
+  quiz
+  project
+}
+
+model Challenge {
+  id           String              @id @default(uuid())
+  title        String
+  slug         String              @unique
+  description  String
+  difficulty   ChallengeDifficulty
+  type         ChallengeType
+  starterCode  String              @map("starter_code")
+  solutionCode String?             @map("solution_code")
+  testCases    Json                @map("test_cases")
+  hints        Json
+  tags         String[]
+  xpReward     Int                 @default(10) @map("xp_reward")
+  createdBy    String?             @map("created_by")
+  isOfficial   Boolean             @default(true) @map("is_official")
+  createdAt    DateTime            @default(now()) @map("created_at")
+  updatedAt    DateTime            @updatedAt @map("updated_at")
+
+  creator     User?                 @relation("CreatedChallenges", fields: [createdBy], references: [id], onDelete: SetNull)
+  submissions ChallengeSubmission[]
+
+  @@map("challenges")
+}
+
+model ChallengeSubmission {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  challengeId String   @map("challenge_id")
+  code        String
+  passed      Boolean
+  testResults Json     @map("test_results")
+  timeTaken   Int      @map("time_taken") // in seconds
+  submittedAt DateTime @default(now()) @map("submitted_at")
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@map("challenge_submissions")
+}
+
+enum AchievementRarity {
+  common
+  rare
+  epic
+  legendary
+}
+
+model Achievement {
+  id          String             @id @default(uuid())
+  name        String
+  description String
+  icon        String
+  criteria    Json               // conditions to unlock
+  xpReward    Int                @default(0) @map("xp_reward")
+  rarity      AchievementRarity
+
+  users UserAchievement[]
+
+  @@map("achievements")
+}
+
+model UserAchievement {
+  userId        String   @map("user_id")
+  achievementId String   @map("achievement_id")
+  earnedAt      DateTime @default(now()) @map("earned_at")
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@id([userId, achievementId])
+  @@map("user_achievements")
+}
+
+model SharedCode {
+  id          String    @id @default(uuid())
+  userId      String?   @map("user_id")
+  code        String
+  language    String    @default("python")
+  description String?
+  shareToken  String    @unique @map("share_token")
+  viewCount   Int       @default(0) @map("view_count")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  expiresAt   DateTime? @map("expires_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("shared_code")
+}
