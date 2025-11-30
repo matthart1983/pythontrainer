@@ -70,7 +70,9 @@ app.get('/', (_req, res) => {
 
 // Health check
 app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  console.log('✅ Health check endpoint hit');
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+  console.log('✅ Health check response sent');
 });
 
 // API Routes
