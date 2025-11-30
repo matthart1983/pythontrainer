@@ -75,6 +75,23 @@ app.get('/health', (_req, res) => {
   console.log('✅ Health check response sent');
 });
 
+// Temporary seed endpoint - REMOVE AFTER SEEDING
+app.post('/api/v1/seed-database', async (_req, res) => {
+  try {
+    console.log('🌱 Starting database seed...');
+    const { exec } = await import('child_process');
+    const { promisify } = await import('util');
+    const execPromise = promisify(exec);
+    
+    await execPromise('npx tsx prisma/update-intro.ts && npx tsx prisma/update-ml-lesson.ts');
+    console.log('✅ Database seeded successfully');
+    res.json({ success: true, message: 'Database seeded successfully' });
+  } catch (error) {
+    console.error('❌ Seed error:', error);
+    res.status(500).json({ success: false, error: String(error) });
+  }
+});
+
 // API Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
