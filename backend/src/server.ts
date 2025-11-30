@@ -83,7 +83,7 @@ app.post('/api/v1/seed-database', async (_req, res) => {
     const { promisify } = await import('util');
     const execPromise = promisify(exec);
     
-    await execPromise('npx tsx prisma/update-intro.ts && npx tsx prisma/update-ml-lesson.ts');
+    await execPromise('cd backend && npx tsx prisma/update-intro.ts && npx tsx prisma/update-ml-lesson.ts');
     console.log('✅ Database seeded successfully');
     res.json({ success: true, message: 'Database seeded successfully' });
   } catch (error) {
