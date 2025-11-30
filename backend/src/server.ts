@@ -52,12 +52,19 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
+// Request logging
+app.use((req, _res, next) => {
+  console.log(`📨 ${req.method} ${req.path}`);
+  next();
+});
+
 // Body parsing middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Root health check for Railway
 app.get('/', (_req, res) => {
+  console.log('✅ Root endpoint hit');
   res.json({ status: 'ok', service: 'Python Trainer API', timestamp: new Date().toISOString() });
 });
 
