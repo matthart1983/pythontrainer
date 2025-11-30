@@ -12,7 +12,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = parseInt(process.env.PORT || '3001', 10);
 
 // Security middleware
 app.use(helmet());
@@ -71,7 +71,7 @@ app.use((_req, res) => {
 // Error handling middleware
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
