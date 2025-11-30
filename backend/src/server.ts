@@ -79,11 +79,16 @@ app.get('/health', (_req, res) => {
 app.post('/api/v1/seed-database', async (_req, res) => {
   try {
     console.log('🌱 Starting database seed...');
-    const { exec } = await import('child_process');
-    const { promisify } = await import('util');
-    const execPromise = promisify(exec);
+    const { PrismaClient } = await import('@prisma/client');
+    const { seedIntroLesson, seedMLLesson } = await import('./utils/seedDatabase.js');
     
-    await execPromise('cd backend && npx tsx prisma/update-intro.ts && npx tsx prisma/update-ml-lesson.ts');
+    const prisma = new PrismaClient();
+    
+    await seedIntroLesson(prisma);
+    await seedMLLesson(prisma);
+    
+    await prisma.$disconnect();
+    
     console.log('✅ Database seeded successfully');
     res.json({ success: true, message: 'Database seeded successfully' });
   } catch (error) {
