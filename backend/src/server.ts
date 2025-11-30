@@ -14,6 +14,10 @@ dotenv.config();
 const app = express();
 const PORT = parseInt(process.env.PORT || '3001', 10);
 
+console.log('🔧 Starting server...');
+console.log('📍 PORT env variable:', process.env.PORT);
+console.log('📍 Parsed PORT:', PORT);
+
 // Security middleware
 app.use(helmet());
 
