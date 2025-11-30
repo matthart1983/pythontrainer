@@ -79,15 +79,11 @@ app.get('/health', (_req, res) => {
 app.post('/api/v1/seed-database', async (_req, res) => {
   try {
     console.log('🌱 Starting database seed...');
-    const { PrismaClient } = await import('@prisma/client');
+    const prisma = (await import('./lib/prisma.js')).default;
     const { seedIntroLesson, seedMLLesson } = await import('./utils/seedDatabase.js');
-    
-    const prisma = new PrismaClient();
     
     await seedIntroLesson(prisma);
     await seedMLLesson(prisma);
-    
-    await prisma.$disconnect();
     
     console.log('✅ Database seeded successfully');
     res.json({ success: true, message: 'Database seeded successfully' });
